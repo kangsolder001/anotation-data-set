@@ -140,6 +140,36 @@ def submit_annotation(
     return result.rowcount > 0
 
 
+def update_annotation(
+    db: Session,
+    comment_id: str,
+    annotator_id: int,
+    label: str,
+    is_admin: bool = False,
+) -> bool:
+    """
+    Update label anotasi yang sudah dibuat oleh annotator ini.
+    Hanya annotator pemilik anotasi (atau admin) yang berhak mengubah.
+    """
+    if label not in VALID_LABELS:
+        raise ValueError(f"Label tidak valid: {label}")
+
+    condition = dataset.c.comment_id == comment_id
+    if not is_admin:
+        condition = and_(condition, dataset.c.annotator_id == annotator_id)
+
+    result = db.execute(
+        update(dataset)
+        .where(condition)
+        .values(
+            label_manual=label,
+            annotated_at=datetime.utcnow(),
+        )
+    )
+    db.commit()
+    return result.rowcount > 0
+
+
 # ═══════════════════════════════════════════════════════════
 # STATISTIK
 # ═══════════════════════════════════════════════════════════

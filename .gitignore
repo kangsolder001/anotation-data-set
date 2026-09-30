@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -7,17 +8,24 @@ __pycache__/
 
 # Virtual Environment
 venv/
+**/venv/
 .venv/
+**/.venv/
 env/
+**/env/
 ENV/
 
 # Environment Variables
 .env
+**/.env
 !.env.example
+!**/.env.example
 
 # IDE & OS
 .vscode/
+**/.vscode/
 .idea/
+**/.idea/
 *.swp
 *.swo
 .DS_Store

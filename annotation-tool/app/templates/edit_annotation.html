@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Edit Anotasi — Annotation Tool{% endblock %}
+{% block content %}
+
+{# ── Header Navigasi Balik ── #}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+  <h3 style="margin:0;">Edit Anotasi</h3>
+  <a href="/progress?page={{ page }}" class="btn-secondary" style="height:32px;font-size:0.82rem;display:inline-flex;align-items:center;">
+    ← Kembali ke Progress
+  </a>
+</div>
+
+{# ── Notifikasi Error/Info ── #}
+{% if msg %}
+<div class="alert alert-info" style="margin-bottom:1rem;">{{ msg }}</div>
+{% endif %}
+
+{# ── Kata Kunci (jika ada) ── #}
+{% if item.keyword_search %}
+<div style="margin-bottom:0.75rem;">
+  <span class="keyword-pill">{{ item.keyword_search }}</span>
+</div>
+{% endif %}
+
+{# ── Kotak Komentar Lengkap ── #}
+<div class="comment-box">{{ item.cleaned_text }}</div>
+
+{# ── Status Label Saat Ini ── #}
+<div style="margin-bottom:0.75rem;font-size:0.88rem;color:var(--muted);display:flex;align-items:center;gap:0.5rem;">
+  <span>Label saat ini:</span>
+  {% if item.label_manual %}
+  <span class="badge badge-{{ item.label_manual }}">{{ item.label_manual }}</span>
+  {% else %}
+  <span>—</span>
+  {% endif %}
+</div>
+
+{# ── Form Pemilihan Label Baru ── #}
+<p style="font-size:0.88rem;color:var(--muted);margin-bottom:0.5rem;">Pilih label baru untuk komentar ini:</p>
+<form method="post" action="/edit-annotation/{{ item.comment_id }}">
+  <input type="hidden" name="page" value="{{ page }}" />
+  <div class="label-buttons">
+    <button type="submit" name="label" value="positif" class="btn-positif">😊 Positif</button>
+    <button type="submit" name="label" value="netral"  class="btn-netral" >😐 Netral</button>
+    <button type="submit" name="label" value="negatif" class="btn-negatif">😞 Negatif</button>
+  </div>
+</form>
+
+{# ── Panduan Pelabelan ── #}
+<details>
+  <summary>Panduan pelabelan</summary>
+  <div style="margin-top:0.75rem;font-size:0.88rem;line-height:1.75;">
+    <p style="margin-bottom:0.75rem;">
+      <strong style="color:var(--btn-positif);">Positif</strong> &mdash; Teks mengekspresikan evaluasi, emosi, atau sikap yang menyenangkan, mendukung, atau menghargai. Termasuk di dalamnya pujian, dukungan, rasa syukur atau terima kasih, harapan baik, kegembiraan, dan apresiasi.
+    </p>
+    <p style="margin-bottom:0.75rem;">
+      <strong style="color:var(--btn-netral);">Netral</strong> &mdash; Tidak ada evaluasi atau emosi yang dapat diidentifikasi. Contohnya informasi faktual, pertanyaan tanpa muatan sikap, deskripsi, atau teks yang arah sentimennya tidak dapat ditentukan.
+    </p>
+    <p style="margin-bottom:0.25rem;">
+      <strong style="color:var(--btn-negatif);">Negatif</strong> &mdash; Teks mengekspresikan evaluasi, emosi, atau sikap yang tidak menyenangkan, menolak, atau merendahkan terhadap suatu target (orang, kelompok, kebijakan, institusi, peristiwa). Termasuk di dalamnya kritik, kemarahan, kekecewaan, kekhawatiran atau ketakutan, ejekan, hinaan, serta sindiran dan sarkasme.
+    </p>
+  </div>
+</details>
+
+{% endblock %}

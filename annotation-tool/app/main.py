@@ -222,7 +222,12 @@ def annotate_post(
 # PROGRESS
 # ═══════════════════════════════════════════════════════════
 @app.get("/progress", response_class=HTMLResponse)
-def progress_page(request: Request, page: int = 1, db: Session = Depends(get_db)):
+def progress_page(
+    request: Request,
+    page: int = 1,
+    msg: str = "",
+    db: Session = Depends(get_db),
+):
     annotator, redirect = _get_annotator_or_redirect(request, db)
     if redirect:
         return redirect
@@ -240,8 +245,73 @@ def progress_page(request: Request, page: int = 1, db: Session = Depends(get_db)
             "my_annotations": my_annotations,
             "page": page,
             "total_pages": total_pages,
+            "msg": msg,
         },
     )
+
+
+# ═══════════════════════════════════════════════════════════
+# EDIT ANOTASI
+# ═══════════════════════════════════════════════════════════
+@app.get("/edit-annotation/{comment_id}", response_class=HTMLResponse)
+def edit_annotation_page(
+    request: Request,
+    comment_id: str,
+    page: int = 1,
+    msg: str = "",
+    db: Session = Depends(get_db),
+):
+    annotator, redirect = _get_annotator_or_redirect(request, db)
+    if redirect:
+        return redirect
+
+    item = crud.get_item_by_comment_id(db, comment_id)
+    if not item:
+        return RedirectResponse(url=f"/progress?page={page}&msg=Item+tidak+ditemukan", status_code=303)
+
+    # Validasi kepemilikan anotasi (kecuali admin)
+    if item["annotator_id"] != annotator["id"] and not annotator.get("is_admin"):
+        return RedirectResponse(url=f"/progress?page={page}&msg=Akses+ditolak", status_code=303)
+
+    return templates.TemplateResponse(
+        "edit_annotation.html",
+        {
+            "request": request,
+            "annotator": annotator,
+            "item": item,
+            "page": page,
+            "msg": msg,
+        },
+    )
+
+
+@app.post("/edit-annotation/{comment_id}", response_class=HTMLResponse)
+def edit_annotation_post(
+    request: Request,
+    comment_id: str,
+    label: str = Form(...),
+    page: int = Form(1),
+    db: Session = Depends(get_db),
+):
+    annotator, redirect = _get_annotator_or_redirect(request, db)
+    if redirect:
+        return redirect
+
+    if label not in crud.VALID_LABELS:
+        return RedirectResponse(url=f"/edit-annotation/{comment_id}?page={page}&msg=Label+tidak+valid", status_code=303)
+
+    success = crud.update_annotation(
+        db,
+        comment_id=comment_id,
+        annotator_id=annotator["id"],
+        label=label,
+        is_admin=annotator.get("is_admin", False),
+    )
+
+    if not success:
+        return RedirectResponse(url=f"/progress?page={page}&msg=Gagal+mengubah+anotasi", status_code=303)
+
+    return RedirectResponse(url=f"/progress?page={page}&msg=Anotasi+berhasil+diperbarui", status_code=303)
 
 
 # ═══════════════════════════════════════════════════════════
