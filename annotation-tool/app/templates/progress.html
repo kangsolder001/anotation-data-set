@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Progress — Annotation Tool{% endblock %}
+{% block content %}
+
+<h3>Progress Anotasi</h3>
+
+{# ── Statistik 4 kartu ── #}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-num">{{ stats.total }}</div>
+    <div class="stat-label">Total Dataset</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--accent);">{{ stats.done_all }}</div>
+    <div class="stat-label">Selesai</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{ stats.done_by_me }}</div>
+    <div class="stat-label">Anotasi Saya</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--muted);">{{ stats.remaining }}</div>
+    <div class="stat-label">Sisa</div>
+  </div>
+</div>
+
+{# ── Progress bar ── #}
+<div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.3rem;">
+  Progres keseluruhan: <strong style="color:var(--text);">{{ stats.pct_all }}%</strong>
+</div>
+<div class="progress-wrap" style="margin-bottom:1.5rem;">
+  <div class="progress-fill" style="width:{{ stats.pct_all }}%;"></div>
+</div>
+
+{# ── Distribusi label saya ── #}
+<h4>Distribusi Label Saya</h4>
+<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.75rem;">
+  {% for lbl, cnt in stats.label_counts.items() %}
+  <div class="stat-card">
+    <div class="stat-num">{{ cnt }}</div>
+    <div style="margin-top:0.3rem;">
+      <span class="badge badge-{{ lbl }}">{{ lbl }}</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# ── Tombol aksi ── #}
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.75rem;align-items:center;">
+  <a href="/annotate" class="btn-primary" style="display:inline-flex;width:auto;align-items:center;justify-content:center;text-decoration:none;padding:0.55rem 1.25rem;font-size:0.9rem;min-height:40px;">
+    Lanjut Anotasi
+  </a>
+  {% if annotator.is_admin %}
+  <a href="/export" class="btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;">Download CSV</a>
+  {% endif %}
+</div>
+
+{# ── Riwayat anotasi ── #}
+<h4>Riwayat Anotasi Terakhir</h4>
+
+{% if my_annotations %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Teks Komentar</th>
+        <th>Label Saya</th>
+        <th>Waktu</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in my_annotations %}
+      <tr>
+        <td style="color:var(--muted);font-size:0.78rem;">{{ (page - 1) * 20 + loop.index }}</td>
+        <td style="max-width:260px;">
+          <span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            {{ row.cleaned_text }}
+          </span>
+        </td>
+        <td>
+          {% if row.label_manual %}
+          <span class="badge badge-{{ row.label_manual }}">{{ row.label_manual }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">
+          {% if row.annotated_at %}{{ row.annotated_at.strftime('%d/%m %H:%M') }}{% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Pagination ── #}
+{% if total_pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="/progress?page={{ page - 1 }}" class="btn-secondary">Sebelumnya</a>
+  {% endif %}
+  <span style="font-size:0.85rem;color:var(--muted);">{{ page }} / {{ total_pages }}</span>
+  {% if page < total_pages %}
+  <a href="/progress?page={{ page + 1 }}" class="btn-secondary">Selanjutnya</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p style="color:var(--muted);font-size:0.9rem;">Belum ada anotasi yang dilakukan.</p>
+{% endif %}
+
+{% endblock %}

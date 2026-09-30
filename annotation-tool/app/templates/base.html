@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="warm-white">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{% block title %}Annotation Tool{% endblock %}</title>
+
+  <script>
+    /* Cegah flash theme saat load */
+    (function() {
+      var saved = localStorage.getItem('annotation_theme') || 'warm-white';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════
+       1. TEMA: WARM WHITE (Clean & Warm White Aesthetic)
+       ═══════════════════════════════════════════════════ */
+    :root,
+    [data-theme="warm-white"] {
+      --bg:             #faf9f6; /* Warm White */
+      --surface:        #ffffff; /* Pure White Card */
+      --surface-2:      #f2f1ec; /* Secondary surface */
+      --border:         #e2dfd7; /* Soft warm border */
+      --border-focus:   #2b2b2b;
+      --text:           #1f1f1e; /* Black dove text */
+      --muted:          #6e6c66; /* Muted warm gray */
+      --accent:         #242423; /* Dark matte accent */
+      --accent-hover:   #000000;
+      --btn-text:       #ffffff;
+
+      /* Label Buttons */
+      --btn-positif:    #3a7548;
+      --btn-netral:     #9e7428;
+      --btn-negatif:    #a63939;
+
+      --badge-pos-bg:   #eaf4ec;
+      --badge-pos-text: #2d5e38;
+      --badge-net-bg:   #f7f1e4;
+      --badge-net-text: #78571b;
+      --badge-neg-bg:   #f9eaea;
+      --badge-neg-text: #822a2a;
+
+      --pico-background-color:      var(--bg);
+      --pico-card-background-color: var(--surface);
+      --pico-color:                 var(--text);
+      --pico-muted-color:           var(--muted);
+      --pico-muted-border-color:    var(--border);
+      --pico-primary:               var(--accent);
+      --pico-primary-hover:         var(--accent-hover);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       2. TEMA: BLACK DOVE (Deep Matte Charcoal & Dove)
+       ═══════════════════════════════════════════════════ */
+    [data-theme="black-dove"] {
+      --bg:             #121212; /* Deep Black Dove */
+      --surface:        #1c1c1c; /* Charcoal Dove Surface */
+      --surface-2:      #262626; /* Secondary Dove Surface */
+      --border:         #333333; /* Matte border */
+      --border-focus:   #777777;
+      --text:           #ededed; /* Crisp soft white */
+      --muted:          #9e9e9e; /* Dove gray */
+      --accent:         #e5e5e5;
+      --accent-hover:   #ffffff;
+      --btn-text:       #121212;
+
+      /* Label Buttons */
+      --btn-positif:    #2e6b3c;
+      --btn-netral:     #8f6720;
+      --btn-negatif:    #943434;
+
+      --badge-pos-bg:   #1b3321;
+      --badge-pos-text: #86d497;
+      --badge-net-bg:   #332712;
+      --badge-net-text: #f0be67;
+      --badge-neg-bg:   #381717;
+      --badge-neg-text: #f28d8d;
+
+      --pico-background-color:      var(--bg);
+      --pico-card-background-color: var(--surface);
+      --pico-color:                 var(--text);
+      --pico-muted-color:           var(--muted);
+      --pico-muted-border-color:    var(--border);
+      --pico-primary:               var(--accent);
+      --pico-primary-hover:         var(--accent-hover);
+    }
+
+    /* ── Global Reset & Strict Width Constraint ── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      max-width: 100vw;
+      width: 100%;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* ── Lebar Halaman & Navbar Konsisten Presisi ── */
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      box-sizing: border-box;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      width: 100%;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-sizing: border-box;
+    }
+    .navbar-inner {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 54px;
+      box-sizing: border-box;
+      gap: 0.4rem;
+    }
+    .navbar .brand {
+      font-weight: 700;
+      font-size: 0.98rem;
+      text-decoration: none;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .brand-full { display: inline; }
+    .brand-short { display: none; }
+
+    .navbar .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-shrink: 1;
+      min-width: 0;
+    }
+    .nav-right form.nav-form {
+      display: inline-flex;
+      align-items: center;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      height: 32px;
+      padding: 0 0.4rem;
+      white-space: nowrap;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    .user-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text);
+      max-width: 85px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      height: 32px;
+      padding: 0 0.2rem;
+    }
+
+    /* Tombol Navigasi Seragam (Lurus & Presisi) */
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 500;
+      height: 32px;
+      line-height: 1;
+      padding: 0 0.55rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0 !important;
+      box-sizing: border-box;
+      white-space: nowrap;
+    }
+    .nav-btn:hover { background: var(--border); }
+    .nav-btn:active { transform: scale(0.97); }
+
+    /* ── Responsive Navbar di Layar HP (< 480px) ── */
+    @media (max-width: 480px) {
+      .navbar-inner {
+        height: 50px;
+        padding: 0 0.75rem;
+      }
+      .brand-full { display: none; }
+      .brand-short { display: inline; }
+      .user-badge { max-width: 65px; font-size: 0.78rem; }
+      .nav-btn {
+        padding: 0 0.45rem;
+        font-size: 0.76rem;
+        height: 30px;
+      }
+      .nav-link {
+        font-size: 0.78rem;
+        padding: 0 0.25rem;
+        height: 30px;
+      }
+      .container { padding: 0 0.75rem; }
+    }
+
+    /* ── Main Content ── */
+    main { padding: 1.25rem 0 3rem; }
+
+    /* ── Kotak Komentar ── */
+    .comment-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      margin-bottom: 1.25rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    /* ── Keyword Pill ── */
+    .keyword-pill {
+      display: inline-block;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.2em 0.85em;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* ── Tombol Pemilihan Label (Touch-Friendly HP) ── */
+    .label-buttons {
+      display: flex;
+      gap: 0.65rem;
+      margin: 1.25rem 0;
+      width: 100%;
+    }
+    .label-buttons button {
+      flex: 1;
+      min-width: 0; /* Cegah overflow flex child di HP */
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.85rem 0.35rem;
+      min-height: 52px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      color: #ffffff;
+      letter-spacing: 0.01em;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      white-space: nowrap;
+    }
+    .label-buttons button:active { transform: scale(0.98); }
+    .btn-positif { background: var(--btn-positif); }
+    .btn-netral  { background: var(--btn-netral); }
+    .btn-negatif { background: var(--btn-negatif); }
+
+    @media (max-width: 360px) {
+      .label-buttons { flex-direction: column; }
+      .label-buttons button { min-height: 50px; }
+    }
+
+    /* ── Progress Bar ── */
+    .progress-wrap {
+      background: var(--surface-2);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+      margin: 0.35rem 0 1.25rem;
+      border: 1px solid var(--border);
+      width: 100%;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
+
+    /* ── Alerts ── */
+    .alert {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      word-break: break-word;
+    }
+    .alert-error   { background: var(--badge-neg-bg); color: var(--badge-neg-text); border-color: var(--badge-neg-text); }
+    .alert-success { background: var(--badge-pos-bg); color: var(--badge-pos-text); border-color: var(--badge-pos-text); }
+    .alert-info    { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 0.15em 0.55em;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-positif { background: var(--badge-pos-bg); color: var(--badge-pos-text); }
+    .badge-negatif { background: var(--badge-neg-bg); color: var(--badge-neg-text); }
+    .badge-netral  { background: var(--badge-net-bg); color: var(--badge-net-text); }
+
+    /* ── Stat Grid ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.65rem;
+      margin-bottom: 1.25rem;
+      width: 100%;
+    }
+    @media (min-width: 520px) {
+      .stat-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 0.65rem;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text);
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Table Wrap ── */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 100%;
+    }
+    table {
+      font-size: 0.86rem;
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      margin: 0;
+    }
+    th, td {
+      padding: 0.65rem 0.65rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    thead th {
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    /* ── Form Inputs ── */
+    .auth-wrap {
+      max-width: 380px;
+      margin: 2rem auto;
+      padding: 0 0.25rem;
+      width: 100%;
+    }
+    .auth-wrap h2 {
+      text-align: center;
+      font-size: 1.35rem;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    .auth-wrap .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+      display: block;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      padding: 0.7rem 0.8rem;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      margin-bottom: 0.95rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    input:focus { border-color: var(--border-focus); }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      background: var(--accent);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 48px;
+      box-sizing: border-box;
+    }
+    .btn-primary:active { opacity: 0.9; }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-secondary:hover { background: var(--border); }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      margin-top: 1rem;
+      background: var(--surface);
+    }
+    summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+      user-select: none;
+    }
+    details[open] summary { color: var(--text); }
+    details p { margin: 0.5rem 0; font-size: 0.9rem; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="brand" href="/">
+      <span class="brand-full">Annotation Tool</span>
+      <span class="brand-short">Annotation</span>
+    </a>
+    
+    <div class="nav-right">
+      {% if annotator is defined and annotator %}
+      <span class="user-badge" title="{{ annotator.nama }}">{{ annotator.nama.split()[0] }}</span>
+      <a href="/progress" class="nav-link">Progress</a>
+      {% endif %}
+
+      <button id="theme-toggle-btn" class="nav-btn" onclick="toggleTheme()" type="button" aria-label="Ganti Tema">
+        Tema
+      </button>
+
+      {% if annotator is defined and annotator %}
+      <form action="/logout" method="post" class="nav-form">
+        <button class="nav-btn btn-logout" type="submit">Keluar</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<footer>Annotation Tool &mdash; KGS Research</footer>
+
+<script>
+  function updateThemeButtonText(theme) {
+    var btn = document.getElementById('theme-toggle-btn');
+    if (btn) {
+      btn.innerText = (theme === 'black-dove') ? 'White' : 'Dove';
+    }
+  }
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('annotation_theme', theme);
+    updateThemeButtonText(theme);
+  }
+
+  function toggleTheme() {
+    var cur = document.documentElement.getAttribute('data-theme') || 'warm-white';
+    var next = (cur === 'black-dove') ? 'warm-white' : 'black-dove';
+    setTheme(next);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var cur = document.documentElement.getAttribute('data-theme') || 'warm-white';
+    updateThemeButtonText(cur);
+  });
+</script>
+
+</body>
+</html>

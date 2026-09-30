@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Daftar Akun — Annotation Tool{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <h2>Daftar Akun</h2>
+  <p class="subtitle">Isi data diri untuk menjadi anotator</p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/register">
+    <label for="nama">Nama Lengkap</label>
+    <input type="text" id="nama" name="nama"
+      value="{{ form.nama if form is defined else '' }}"
+      placeholder="Nama lengkap Anda"
+      autocomplete="name" required />
+
+    <label for="pekerjaan">Pekerjaan</label>
+    <input type="text" id="pekerjaan" name="pekerjaan"
+      value="{{ form.pekerjaan if form is defined else '' }}"
+      placeholder="Contoh: Mahasiswa, Peneliti, Dosen" required />
+
+    <label for="umur">Umur</label>
+    <input type="number" id="umur" name="umur"
+      value="{{ form.umur if form is defined else '' }}"
+      placeholder="Umur Anda" min="1" max="120"
+      inputmode="numeric" required />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email"
+      value="{{ form.email if form is defined else '' }}"
+      placeholder="contoh@email.com"
+      autocomplete="email" inputmode="email" required />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password"
+      placeholder="Minimal 8 karakter"
+      autocomplete="new-password" minlength="8" required />
+
+    <label for="password2">Konfirmasi Password</label>
+    <input type="password" id="password2" name="password2"
+      placeholder="Ulangi password"
+      autocomplete="new-password" minlength="8" required />
+
+    <button class="btn-primary" type="submit">Daftar</button>
+  </form>
+
+  <p style="text-align:center;margin-top:1.25rem;font-size:0.9rem;color:var(--muted);">
+    Sudah punya akun? <a href="/login">Login di sini</a>
+  </p>
+</div>
+{% endblock %}

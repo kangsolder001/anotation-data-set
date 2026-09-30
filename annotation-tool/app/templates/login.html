@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Login — Annotation Tool{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <h2>Masuk</h2>
+  <p class="subtitle">Login dengan email dan password Anda</p>
+
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
+  {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <form method="post" action="/login">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email"
+      placeholder="contoh@email.com"
+      autocomplete="email" inputmode="email" required />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password"
+      placeholder="Password Anda"
+      autocomplete="current-password" required />
+
+    <button class="btn-primary" type="submit">Masuk</button>
+  </form>
+
+  <p style="text-align:center;margin-top:1.25rem;font-size:0.9rem;color:var(--muted);">
+    Belum punya akun? <a href="/register">Daftar di sini</a>
+  </p>
+</div>
+{% endblock %}

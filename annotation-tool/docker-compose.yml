@@ -1,0 +1,54 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine           # Alpine = image paling ringan untuk Raspi
+    container_name: annotation_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-annotation_db}
+      POSTGRES_USER:     ${POSTGRES_USER:-annotation_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-annotation_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # data persisten
+    networks:
+      - annotation_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-annotation_user} -d ${POSTGRES_DB:-annotation_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ── FastAPI App ─────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: annotation_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy       # tunggu postgres benar-benar siap
+    environment:
+      DATABASE_URL:   postgresql://${POSTGRES_USER:-annotation_user}:${POSTGRES_PASSWORD:-annotation_pass}@db:5432/${POSTGRES_DB:-annotation_db}
+      SECRET_KEY:     ${SECRET_KEY:-change-this-secret-key-in-production}
+      ADMIN_EMAIL:    ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME:     ${ADMIN_NAME:-Administrator}
+    ports:
+      - "${APP_PORT:-8000}:8000"         # akses via http://<ip>:8000
+    volumes:
+      - ./data:/app/data:ro              # mount CSV read-only
+      - ./app:/app/app                   # template dan kode langsung tersinkronisasi
+    networks:
+      - annotation_net
+
+# ── Volume & Network ──────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  annotation_net:
+    driver: bridge

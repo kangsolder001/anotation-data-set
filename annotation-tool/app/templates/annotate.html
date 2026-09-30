@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Anotasi — Annotation Tool{% endblock %}
+{% block content %}
+
+{# ── Header: progress mini ── #}
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.3rem;flex-wrap:wrap;gap:0.25rem;">
+  <span style="font-size:0.88rem;font-weight:600;">Progres keseluruhan</span>
+  <span style="font-size:0.82rem;color:var(--muted);">{{ stats.done_all }} / {{ stats.total }} &nbsp;·&nbsp; Saya: {{ stats.done_by_me }}</span>
+</div>
+<div class="progress-wrap">
+  <div class="progress-fill" style="width:{{ stats.pct_all }}%;"></div>
+</div>
+
+{# ── Notifikasi ── #}
+{% if msg %}
+<div class="alert alert-info" style="margin-bottom:1rem;">{{ msg }}</div>
+{% endif %}
+
+{# ══════════════════════════════════════
+   Semua sudah dianotasi
+══════════════════════════════════════ #}
+{% if not item %}
+<div style="text-align:center;padding:3rem 1rem;">
+  <p style="font-size:2rem;margin-bottom:0.5rem;">&#10003;</p>
+  <h3 style="margin-bottom:0.5rem;">Semua item sudah selesai!</h3>
+  <p style="color:var(--muted);font-size:0.95rem;">
+    Total {{ stats.total }} item telah dianotasi oleh para anotator.
+  </p>
+  <a href="/progress" class="btn-secondary" style="margin-top:1rem;display:inline-block;">Lihat progress saya</a>
+</div>
+
+{% else %}
+
+{# ══════════════════════════════════════
+   Kartu anotasi
+══════════════════════════════════════ #}
+
+{# Kata kunci #}
+{% if item.keyword_search %}
+<div style="margin-bottom:0.75rem;">
+  <span class="keyword-pill">{{ item.keyword_search }}</span>
+</div>
+{% endif %}
+
+{# Teks komentar #}
+<div class="comment-box">{{ item.cleaned_text }}</div>
+
+{# Form label #}
+<p style="font-size:0.88rem;color:var(--muted);margin-bottom:0.5rem;">Pilih label sentimen:</p>
+<form method="post" action="/annotate/{{ item.comment_id }}">
+  <div class="label-buttons">
+    <button type="submit" name="label" value="positif" class="btn-positif">😊 Positif</button>
+    <button type="submit" name="label" value="netral"  class="btn-netral" >😐 Netral</button>
+    <button type="submit" name="label" value="negatif" class="btn-negatif">😞 Negatif</button>
+  </div>
+</form>
+
+{# Panduan collapsible #}
+<details>
+  <summary>Panduan pelabelan</summary>
+  <div style="margin-top:0.75rem;font-size:0.88rem;line-height:1.75;">
+    <p style="margin-bottom:0.75rem;">
+      <strong style="color:var(--btn-positif);">Positif</strong> &mdash; Teks mengekspresikan evaluasi, emosi, atau sikap yang menyenangkan, mendukung, atau menghargai. Termasuk di dalamnya pujian, dukungan, rasa syukur atau terima kasih, harapan baik, kegembiraan, dan apresiasi.
+    </p>
+    <p style="margin-bottom:0.75rem;">
+      <strong style="color:var(--btn-netral);">Netral</strong> &mdash; Tidak ada evaluasi atau emosi yang dapat diidentifikasi. Contohnya informasi faktual, pertanyaan tanpa muatan sikap, deskripsi, atau teks yang arah sentimennya tidak dapat ditentukan.
+    </p>
+    <p style="margin-bottom:0.25rem;">
+      <strong style="color:var(--btn-negatif);">Negatif</strong> &mdash; Teks mengekspresikan evaluasi, emosi, atau sikap yang tidak menyenangkan, menolak, atau merendahkan terhadap suatu target (orang, kelompok, kebijakan, institusi, peristiwa). Termasuk di dalamnya kritik, kemarahan, kekecewaan, kekhawatiran atau ketakutan, ejekan, hinaan, serta sindiran dan sarkasme.
+    </p>
+  </div>
+</details>
+
+{% endif %}
+{% endblock %}
